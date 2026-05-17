@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blurred Reveal - Sin Parpadeos, Transiciones Perfectas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f172a, #1e1b4b, #2e1065);
+            overflow-x: hidden;
+            position: relative;
+            padding: 1rem;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            z-index: 0;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
+
+        body::before {
+            background: #ec4899;
+            top: 20%;
+            left: 25%;
+        }
+
+        body::after {
+            background: #3b82f6;
+            bottom: 20%;
+            right: 25%;
+        }
+
+        .glass-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card.hidden {
+            display: none;
+        }
+
+        h2,
+        .overlay-title {
+            color: #ffffff;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .overlay-title {
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1.75rem;
+        }
+
+        label {
+            display: block;
+            color: #cbd5e1;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .custom-select-trigger {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .custom-select-trigger:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .custom-select-trigger::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(25px);
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 8vh 2rem 2rem;
+            animation: fadeIn 0.25s ease forwards;
+        }
+
+        .fullscreen-overlay.active {
+            display: flex;
+        }
+
+        .overlay-content {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-container {
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(236, 72, 153, 0.5);
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
+        }
+
+        /* Flex layout: los elementos con display:none no dejan hueco */
+        .grid-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            height: 55vh;
+            overflow-y: auto;
+            padding: 0.75rem;
+            align-content: flex-start;
+        }
+
+        .grid-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .grid-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .grid-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+
+        .grid-option {
+            flex: 0 0 calc(50% - 0.5rem);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1rem;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: #f1f5f9;
+            font-size: 1rem;
+            text-align: center;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition:
+                opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                filter 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.2s ease,
+                border 0.2s ease;
+            opacity: 1;
+            filter: blur(0px);
+        }
+
+        /* Estado de salida: desvanece con blur antes de display:none */
+        .grid-option.hiding {
+            opacity: 0;
+            filter: blur(10px);
+            pointer-events: none;
+        }
+
+        /* Estado de entrada: parte invisible, la transición la lleva a opacity:1 */
+        .grid-option.entering {
+            opacity: 0;
+            filter: blur(10px);
+        }
+
+        @media (max-width: 480px) {
+            .grid-option {
+                flex: 0 0 100%;
+            }
+        }
+
+        .grid-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .grid-option.selected {
+            background: rgba(236, 72, 153, 0.25);
+            border-color: rgba(236, 72, 153, 0.6);
+            color: #f472b6;
+            font-weight: 600;
+        }
+
+        .no-results {
+            width: 100%;
+            text-align: center;
+            color: #94a3b8;
+            padding: 2rem 0;
+            font-size: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .no-results.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .back-btn {
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto;
+            padding: 0.85rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: block;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="glass-card" id="formCard">
+        <h2>Discovery Form</h2>
+        <form id="musicForm">
+            <div class="form-group">
+                <label>Artista (Punk Rock / Emo)</label>
+                <div class="custom-select-trigger" id="artistTrigger">Selecciona un artista</div>
+                <input type="hidden" name="artist" id="artistInput" required>
+            </div>
+            <div class="form-group">
+                <label>País (Europa)</label>
+                <div class="custom-select-trigger" id="countryTrigger">Selecciona un país</div>
+                <input type="hidden" name="country" id="countryInput" required>
+            </div>
+            <button type="submit" class="submit-btn">Enviar</button>
+        </form>
+    </div>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <div class="overlay-content">
+            <h2 class="overlay-title" id="overlayTitle">Selecciona una opción</h2>
+            <div class="search-container">
+                <input type="text" class="search-input" id="overlaySearch" placeholder="Buscar...">
+            </div>
+            <div class="grid-container" id="gridContainer">
+                <div class="no-results" id="noResultsMsg">No se encontraron resultados</div>
+            </div>
+            <button type="button" class="back-btn" id="backBtn">← Volver atrás</button>
+        </div>
+    </div>
+
+    <script>
+        const artists = ["Blink-182", "Green Day", "My Chemical Romance", "Paramore", "Fall Out Boy", "Rise Against", "The Offspring", "Jimmy Eat World", "Yellowcard", "Jawbreaker"];
+        const countries = ["Alemania", "España", "Francia", "Reino Unido", "Italia", "Suecia", "Países Bajos", "Noruega", "Bélgica", "Irlanda"];
+
+        const formCard = document.getElementById('formCard');
+        const overlay = document.getElementById('fullscreenOverlay');
+        const overlayTitle = document.getElementById('overlayTitle');
+        const overlaySearch = document.getElementById('overlaySearch');
+        const gridContainer = document.getElementById('gridContainer');
+        const backBtn = document.getElementById('backBtn');
+        const artistTrigger = document.getElementById('artistTrigger');
+        const artistInput = document.getElementById('artistInput');
+        const countryTrigger = document.getElementById('countryTrigger');
+        const countryInput = document.getElementById('countryInput');
+
+        let currentTarget = null;
+        const TRANSITION_MS = 350;
+
+        function openSelection(type) {
+            currentTarget = type;
+            formCard.classList.add('hidden');
+            overlay.classList.add('active');
+
+            const noResultsMsg = document.getElementById('noResultsMsg');
+            document.querySelectorAll('.grid-option').forEach(opt => opt.remove());
+            noResultsMsg.classList.remove('visible');
+            overlaySearch.value = '';
+
+            let dataset = [];
+            const selectedValue = (type === 'artist') ? artistInput.value : countryInput.value;
+
+            if (type === 'artist') {
+                overlayTitle.textContent = "Selecciona un Artista";
+                overlaySearch.placeholder = "Buscar artista...";
+                dataset = artists;
+            } else {
+                overlayTitle.textContent = "Selecciona un País";
+                overlaySearch.placeholder = "Buscar país...";
+                dataset = countries;
+            }
+
+            dataset.forEach(item => {
+                const opt = document.createElement('div');
+                opt.className = 'grid-option';
+                if (item === selectedValue) opt.classList.add('selected');
+                opt.textContent = item;
+                opt.setAttribute('data-value', item);
+                opt.addEventListener('click', () => selectOption(item));
+                gridContainer.insertBefore(opt, noResultsMsg);
+            });
+
+            setTimeout(() => overlaySearch.focus(), 50);
+        }
+
+        function filterOptions() {
+            const query = overlaySearch.value.trim().toLowerCase();
+            const options = [...document.querySelectorAll('.grid-option')];
+            const noResultsMsg = document.getElementById('noResultsMsg');
+
+            let visibleCount = 0;
+            const toShow = [];
+            const toHide = [];
+
+            options.forEach(opt => {
+                // FIX: usar data-value en vez de textContent para evitar falsos positivos
+                const value = opt.getAttribute('data-value').toLowerCase();
+                const matches = query === '' || value.includes(query);
+                const isHidden = opt.style.display === 'none';
+
+                if (matches) {
+                    visibleCount++;
+                    if (isHidden) toShow.push(opt);
+                } else {
+                    if (!isHidden) toHide.push(opt);
+                }
+            });
+
+            // Salida: transición de blur/opacity, luego display:none al terminar
+            toHide.forEach(opt => {
+                opt.classList.add('hiding');
+                setTimeout(() => {
+                    opt.style.display = 'none';
+                    opt.classList.remove('hiding');
+                }, TRANSITION_MS);
+            });
+
+            // Entrada: poner display:flex + clase entering (invisible),
+            // mover antes del noResults para que queden arriba,
+            // y en el siguiente frame quitar entering para disparar la transición CSS
+            toShow.forEach(opt => {
+                opt.classList.add('entering');
+                opt.style.display = 'flex';
+                gridContainer.insertBefore(opt, noResultsMsg);
+            });
+
+            if (toShow.length > 0) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        toShow.forEach(opt => opt.classList.remove('entering'));
+                    });
+                });
+            }
+
+            noResultsMsg.classList.toggle('visible', visibleCount === 0 && query !== '');
+        }
+
+        function closeSelection() {
+            overlay.classList.remove('active');
+            formCard.classList.remove('hidden');
+            currentTarget = null;
+        }
+
+        function selectOption(value) {
+            if (currentTarget === 'artist') {
+                artistInput.value = value;
+                artistTrigger.textContent = value;
+            } else {
+                countryInput.value = value;
+                countryTrigger.textContent = value;
+            }
+            document.querySelectorAll('.grid-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.getAttribute('data-value') === value);
+            });
+            closeSelection();
+        }
+
+        artistTrigger.addEventListener('click', () => openSelection('artist'));
+        countryTrigger.addEventListener('click', () => openSelection('country'));
+        backBtn.addEventListener('click', closeSelection);
+        overlaySearch.addEventListener('input', filterOptions);
+
+        document.getElementById('musicForm').addEventListener('submit', e => {
+            e.preventDefault();
+            if (!artistInput.value || !countryInput.value) {
+                alert('Por favor, completa ambas opciones.');
+                return;
+            }
+            alert(`¡Éxito!\nArtista: ${artistInput.value}\nPaís: ${countryInput.value}`);
+        });
+    </script>
+
+</body>
+
+</html>
