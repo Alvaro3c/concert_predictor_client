@@ -1,6 +1,8 @@
 import client from './client'
 
 export async function predictConcert(artist, country) {
+  const url = `/predict?artist=${encodeURIComponent(artist)}&country=${encodeURIComponent(country)}`
+  console.log('URL de la petición:', url)
   const response = await client.get('/predict', {
     params: { artist, country },
   })

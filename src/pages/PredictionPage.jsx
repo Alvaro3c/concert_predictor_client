@@ -29,8 +29,13 @@ function PredictionPage() {
   useEffect(() => {
     Promise.all([fetchArtists(), fetchCountries()])
       .then(([artistsData, countriesData]) => {
+        console.log('Artistas recibidos:', artistsData)
+        console.log('Países recibidos:', countriesData)
         setArtists(artistsData)
         setCountries(countriesData)
+      })
+      .catch((error) => {
+        console.error('Error al cargar catálogo:', error)
       })
       .finally(() => setCatalogLoading(false))
   }, [])
@@ -40,11 +45,15 @@ function PredictionPage() {
     setResult('')
     setErrorMsg('')
     setPageStatus('loading')
+    console.log('--- Enviando predicción ---')
+    console.log('artist (tipo):', typeof artist, '| valor:', JSON.stringify(artist))
+    console.log('country (tipo):', typeof country, '| valor:', JSON.stringify(country))
     try {
       const prediction = await predictConcert(artist, country)
       setResult(prediction)
       setPageStatus('success')
     } catch (error) {
+      console.error('Error 422 detalle completo:', error.response?.data)
       setErrorMsg(getErrorMessage(error))
       setPageStatus('error')
     }
