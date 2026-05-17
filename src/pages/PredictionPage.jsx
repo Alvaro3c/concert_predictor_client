@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { predictConcert, fetchArtists, fetchCountries } from '../api/endpoints'
+import { artists as staticArtists, countries as staticCountries } from '../data/catalog'
 import GlassCard from '../components/GlassCard'
 import CustomSelect from '../components/CustomSelect'
 import SelectionOverlay from '../components/SelectionOverlay'
@@ -22,22 +23,16 @@ function PredictionPage() {
   const [pageStatus, setPageStatus] = useState('idle')
   const [result, setResult] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
-  const [artists, setArtists] = useState([])
-  const [countries, setCountries] = useState([])
-  const [catalogLoading, setCatalogLoading] = useState(true)
+  const [artists, setArtists] = useState(staticArtists)
+  const [countries, setCountries] = useState(staticCountries)
 
   useEffect(() => {
     Promise.all([fetchArtists(), fetchCountries()])
       .then(([artistsData, countriesData]) => {
-        console.log('Artistas recibidos:', artistsData)
-        console.log('Países recibidos:', countriesData)
         setArtists(artistsData)
         setCountries(countriesData)
       })
-      .catch((error) => {
-        console.error('Error al cargar catálogo:', error)
-      })
-      .finally(() => setCatalogLoading(false))
+      .catch(() => {})
   }, [])
 
   async function handleSubmit(e) {
@@ -79,14 +74,14 @@ function PredictionPage() {
           <CustomSelect
             label="Artista (Punk Rock / Emo)"
             value={artist}
-            placeholder={catalogLoading ? 'Cargando artistas...' : 'Selecciona un artista'}
+            placeholder="Selecciona un artista"
             onClick={() => setOverlayOpen('artist')}
             disabled={isLoading}
           />
           <CustomSelect
             label="País (Europa)"
             value={country}
-            placeholder={catalogLoading ? 'Cargando países...' : 'Selecciona un país'}
+            placeholder="Selecciona un país"
             onClick={() => setOverlayOpen('country')}
             disabled={isLoading}
           />
