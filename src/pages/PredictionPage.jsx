@@ -81,14 +81,14 @@ function PredictionPage() {
             value={artist}
             placeholder={catalogLoading ? 'Cargando artistas...' : 'Selecciona un artista'}
             onClick={() => setOverlayOpen('artist')}
-            disabled={isLoading || catalogLoading}
+            disabled={isLoading}
           />
           <CustomSelect
             label="País (Europa)"
             value={country}
             placeholder={catalogLoading ? 'Cargando países...' : 'Selecciona un país'}
             onClick={() => setOverlayOpen('country')}
-            disabled={isLoading || catalogLoading}
+            disabled={isLoading}
           />
           <button
             className="submit-btn"
